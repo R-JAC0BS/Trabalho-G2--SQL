@@ -1,0 +1,18 @@
+CREATE OR REPLACE PROCEDURE registrar_presenca(
+    d_consulta_id IN INT
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM consulta WHERE d_consulta_id = consulta_id) THEN
+        RAISE EXCEPTION 'Consulta não encontrada.';
+    END IF;
+
+    UPDATE consulta
+    SET data_execucao = CURRENT_TIMESTAMP
+    WHERE consulta_id = consulta_id AND data_execucao IS NULL;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Consulta já realizada.';
+    END IF;
+END;
+$$;

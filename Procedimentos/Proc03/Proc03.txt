@@ -1,0 +1,28 @@
+CREATE OR REPLACE PROCEDURE calcular_ocupacao_andar(
+    a_andar IN INT,
+    ocupacao_saida OUT NUMERIC
+)
+LANGUAGE plpgsql AS $$
+DECLARE
+    total INT;
+    ocupados INT;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM leito WHERE a_andar = andar) THEN
+        RAISE EXCEPTION 'Andar não encontrado.';
+    END IF;
+
+    SELECT COUNT(*) INTO total
+    FROM leito
+    WHERE a_andar = andar;
+
+    SELECT COUNT(*) INTO ocupados
+    FROM leito
+    WHERE a_andar = andar AND status_ocupacao = TRUE;
+
+    IF total > 0 THEN
+        ocupacao_saida := (ocupados::NUMERIC / total) * 100;
+    ELSE
+        ocupacao_saida := 0;
+    END IF;
+END;
+$$;

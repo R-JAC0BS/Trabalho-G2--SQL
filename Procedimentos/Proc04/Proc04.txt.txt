@@ -1,0 +1,43 @@
+CREATE OR REPLACE PROCEDURE liberar_leito_internacao(p_internacao_id IN INT)
+LANGUAGE plpgsql AS $$
+DECLARE
+    a_leito_id INT;
+    ocupacao_status BOOLEAN;
+    a_data_liberacao TIMESTAMP;
+BEGIN
+    -- Obtém o leito e a data de liberação para a internação informada
+    SELECT leito_id, data_liberacao INTO a_leito_id, a_data_liberacao
+    FROM internacao
+    WHERE internacao_id = p_internacao_id;
+
+    -- Verifica se a internação foi encontrada
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Internação não encontrada.';
+    END IF;
+
+    -- Verifica se a internação já foi liberada
+    IF a_data_liberacao IS NOT NULL THEN
+        RAISE EXCEPTION 'Internação já liberada.';
+    END IF;
+
+    -- Obtém o status de ocupação do leito associado
+    SELECT status_ocupacao INTO ocupacao_status
+    FROM leito
+    WHERE leito_id = a_leito_id;
+
+    -- Verifica se o leito já está livre
+    IF NOT ocupacao_status THEN
+        RAISE EXCEPTION 'Leito já está livre.';
+    END IF;
+
+    -- Atualiza a data de liberação na tabela de internação
+    UPDATE internacao
+    SET data_liberacao = CURRENT_TIMESTAMP
+    WHERE internacao_id = p_internacao_id;
+
+    -- Atualiza o status do leito para livre
+    UPDATE leito
+    SET status_ocupacao = FALSE
+    WHERE leito_id = a_leito_id;
+END;
+$$;

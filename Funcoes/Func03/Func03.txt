@@ -1,0 +1,22 @@
+CREATE OR REPLACE FUNCTION dias_desde_ultima_consulta(in_paciente_id INT) 
+RETURNS INT AS $$
+DECLARE
+    dias INT;
+    ultima_data DATE;
+BEGIN
+    SELECT MAX(data_agendamento) INTO ultima_data 
+    FROM consulta 
+    WHERE paciente_id = in_paciente_id;
+
+    IF ultima_data IS NULL THEN
+        RAISE EXCEPTION 'Paciente sem consultas registradas.';
+    END IF;
+
+    dias := CURRENT_DATE - ultima_data;
+
+    RETURN dias;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Erro ao calcular dias: %', SQLERRM;
+END;
+$$ LANGUAGE plpgsql;

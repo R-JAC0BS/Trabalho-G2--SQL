@@ -1,0 +1,19 @@
+CREATE OR REPLACE FUNCTION contar_prescricoes_medicamento(in_medicamento_id INT) 
+RETURNS INT AS $$
+DECLARE
+    quantidade INT;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM medicamento WHERE medicamento_id = in_medicamento_id) THEN
+        RAISE EXCEPTION 'Medicamento não encontrado.';
+    END IF;
+
+    SELECT COUNT(*) INTO quantidade 
+    FROM prescricao 
+    WHERE medicamento_id = in_medicamento_id;
+
+    RETURN quantidade;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Erro ao contar prescrições: %', SQLERRM;
+END;
+$$ LANGUAGE plpgsql;

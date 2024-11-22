@@ -1,0 +1,19 @@
+CREATE OR REPLACE FUNCTION verificar_prescricao(in_consulta_id INT) 
+RETURNS INT AS $$
+DECLARE
+    resultado INT;
+BEGIN
+    SELECT possui_prescricao INTO resultado 
+    FROM consulta 
+    WHERE consulta_id = in_consulta_id;
+
+    IF resultado IS NULL THEN
+        RAISE EXCEPTION 'Consulta não encontrada.';
+    END IF;
+
+    RETURN resultado;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Erro ao verificar prescrição: %', SQLERRM;
+END;
+$$ LANGUAGE plpgsql;

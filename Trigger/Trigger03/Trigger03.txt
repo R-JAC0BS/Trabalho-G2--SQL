@@ -1,0 +1,27 @@
+CREATE OR REPLACE FUNCTION validar_preco_comercial()
+RETURNS TRIGGER AS $$
+DECLARE
+    ultima_atualizacao TIMESTAMP;
+BEGIN
+    IF NEW.preco_comercial <> OLD.preco_comercial THEN
+        SELECT MAX(data_atualizacao) INTO ultima_atualizacao
+        FROM medicamento_controle
+        WHERE medicamento_id = OLD.medicamento_id;
+
+        IF ultima_atualizacao IS NOT NULL AND ultima_atualizacao >= CURRENT_TIMESTAMP - INTERVAL '30 days' THEN
+            RAISE EXCEPTION 'Alteração de preço não permitida. Última alteração foi nos últimos 30 dias.';
+        END IF;
+
+        INSERT INTO medicamento_controle (medicamento_id, preco_antigo, preco_novo, data_atualizacao)
+        VALUES (OLD.medicamento_id, OLD.preco_comercial, NEW.preco_comercial, CURRENT_TIMESTAMP);
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger
+CREATE TRIGGER trg_validar_preco_comercial
+BEFORE UPDATE ON medicamento
+FOR EACH ROW
+EXECUTE FUNCTION validar_preco_comercial();

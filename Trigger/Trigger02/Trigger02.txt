@@ -1,0 +1,16 @@
+CREATE OR REPLACE FUNCTION decrementar_prescricao()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE consulta
+    SET possui_prescricao = possui_prescricao - 1
+    WHERE consulta_id = OLD.consulta_id;
+
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger
+CREATE TRIGGER trg_decrementar_prescricao
+AFTER DELETE ON prescricao
+FOR EACH ROW
+EXECUTE FUNCTION decrementar_prescricao();

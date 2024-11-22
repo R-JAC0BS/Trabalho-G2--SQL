@@ -1,0 +1,16 @@
+CREATE OR REPLACE FUNCTION validar_troca_leito() 
+RETURNS TRIGGER AS $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM leito WHERE leito_id = NEW.leito_id AND status_ocupacao = TRUE) THEN
+        RAISE EXCEPTION 'Não é permitido trocar para um leito ocupado: %', NEW.leito_id;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger
+CREATE TRIGGER trg_validar_troca_leito
+BEFORE UPDATE ON internacao
+FOR EACH ROW
+EXECUTE FUNCTION validar_troca_leito();

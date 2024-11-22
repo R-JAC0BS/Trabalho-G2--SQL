@@ -1,0 +1,24 @@
+CREATE OR REPLACE FUNCTION contar_consultas_paciente(in_paciente_id INT, in_cidade_id INT) 
+RETURNS INT AS $$
+DECLARE
+    quantidade INT;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM paciente WHERE paciente_id = in_paciente_id) THEN
+        RAISE EXCEPTION 'Paciente não encontrado.';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM cidade WHERE cidade_id = in_cidade_id) THEN
+        RAISE EXCEPTION 'Cidade não encontrada.';
+    END IF;
+
+    SELECT COUNT(*) INTO quantidade 
+    FROM consulta c
+    JOIN paciente p ON c.paciente_id = p.paciente_id
+    WHERE p.paciente_id = in_paciente_id AND p.cidade_id = in_cidade_id;
+
+    RETURN quantidade;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Erro ao contar consultas: %', SQLERRM;
+END;
+$$ LANGUAGE plpgsql;

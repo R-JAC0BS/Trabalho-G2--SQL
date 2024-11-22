@@ -1,0 +1,15 @@
+CREATE OR REPLACE FUNCTION validar_data_agendamento() 
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.data_agendamento < CURRENT_TIMESTAMP THEN
+        RAISE EXCEPTION 'Data de agendamento não pode ser retroativa: %', NEW.data_agendamento;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger
+CREATE TRIGGER trg_validar_data_agendamento
+BEFORE INSERT ON consulta
+FOR EACH ROW EXECUTE FUNCTION validar_data_agendamento();

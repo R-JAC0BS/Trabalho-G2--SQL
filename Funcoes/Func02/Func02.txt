@@ -1,0 +1,19 @@
+CREATE OR REPLACE FUNCTION obter_internacao(in_paciente_id INT) 
+RETURNS INT AS $$
+DECLARE
+    internacao_id INT;
+BEGIN
+    SELECT i.internacao_id INTO internacao_id 
+    FROM internacao i
+    WHERE i.paciente_id = in_paciente_id AND i.data_liberacao IS NULL;
+    
+    IF internacao_id IS NULL THEN
+        RAISE EXCEPTION 'Paciente não está internado.';
+    END IF;
+
+    RETURN internacao_id;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Erro ao obter internação: %', SQLERRM;
+END;
+$$ LANGUAGE plpgsql;

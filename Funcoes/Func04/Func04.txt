@@ -1,0 +1,20 @@
+CREATE OR REPLACE FUNCTION contar_alteracoes_preco(in_medicamento_id INT, in_dias INT) 
+RETURNS INT AS $$
+DECLARE
+    quantidade INT;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM medicamento WHERE medicamento_id = in_medicamento_id) THEN
+        RAISE EXCEPTION 'Medicamento não encontrado.';
+    END IF;
+
+    SELECT COUNT(*) INTO quantidade 
+    FROM medicamento_controle 
+    WHERE medicamento_id = in_medicamento_id 
+      AND data_modificacao >= CURRENT_DATE - INTERVAL '1 day' * in_dias;
+
+    RETURN quantidade;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Erro ao contar alterações: %', SQLERRM;
+END;
+$$ LANGUAGE plpgsql;
